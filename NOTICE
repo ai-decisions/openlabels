@@ -1,0 +1,42 @@
+openlabels
+Copyright 2026 AI DECISIONS (aidecisions.ai)
+
+This product includes software developed at AI DECISIONS
+(https://aidecisions.ai/).
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this software except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+---
+
+Data-source attributions and terms (the tools in this repository fetch
+data from public regulators and public label sources at run time; the
+repository itself ships NO regulator dumps):
+
+- FinCEN MSB Registrant data is public information provided as a public
+  service by the U.S. Financial Crimes Enforcement Network
+  (https://www.fincen.gov/); attribution requested per FinCEN site policies.
+- ESMA register data: reproduction is authorised provided the source is
+  acknowledged (ESMA legal notice). Any transformed output should carry
+  the disclaimer that it was drafted using material downloaded from
+  ESMA's website and that ESMA does not endorse the result.
+- UK FCA Financial Services Register content is subject to FCA legal
+  terms which restrict redistribution; the scraper client is provided
+  here, but FCA data dumps must not be committed to or redistributed
+  from this repository.
+- OFAC SDN data (sanctionslistservice.ofac.treas.gov) is U.S. government
+  public information.
+- OpenSanctions data is licensed CC-BY-NC 4.0: outputs derived from it
+  (including TagPack rows with source "opensanctions") must not be
+  redistributed in commercial contexts and are excluded from this
+  repository and its example outputs.
+- Dune Spellbook is licensed BSL 1.1 (not Apache-2.0): spellbook-derived
+  label rows are likewise excluded from this repository.
+- L2BEAT (https://github.com/l2beat/l2beat) is MIT-licensed; the bridge
+  registry builder reads its typed escrow references at run time with a
+  pinned commit recorded in every output manifest.
+- dawsbot/eth-labels (https://github.com/dawsbot/eth-labels) is a public
+  label collection consumed at run time by the mixer probe/registry.

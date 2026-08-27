@@ -1,0 +1,1 @@
+"""openlabels.registry"""

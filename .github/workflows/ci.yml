@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install -e .[tagpack,dev]
+      - name: Compile every module
+        run: python -m compileall -q src tests tools
+      - name: Lint
+        run: ruff check src tests tools
+      - name: Sanitize gate
+        run: python tools/sanitize_gate.py --public-mode
+      - name: Unit tests
+        run: pytest -q
+      - name: Repro (determinism shas)
+        run: pytest -s -q tests/test_pipeline_determinism.py

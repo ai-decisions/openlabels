@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+.env
+data/labels_raw/
+data/*.json
+data/*.parquet
+data/*.manifest.json
+out/
+*.parquet
+!tests/data/*.parquet
+.claude/
+.ruff_cache/
