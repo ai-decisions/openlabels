@@ -1,0 +1,123 @@
+title: AI DECISIONS first-party curated labels
+creator: AI DECISIONS (aidecisions.ai)
+description: Address labels curated by AI DECISIONS from first-party on-chain extraction and from cited public primary sources. Every tag carries the URI of the document that supports it; the per-set method
+  is in data/first-party/README.md.
+lastmod: '2026-09-05'
+tags:
+- address: '0x098b716b8aaf21512996dc57eb0615e2383e2f96'
+  currency: ETH
+  label: Lazarus Group (Ronin Bridge exploiter)
+  source: https://www.treasury.gov/ofac/downloads/sdn.csv
+  context: '{"kind": "wallet", "ofac": "SDN entry Lazarus Group, designation 2022-04-14; on the list in our OFAC copy of the build date", "designation": "https://ofac.treasury.gov/recent-actions/20220414"}'
+  category: sanction
+- address: '0x0fcd14b79d3eba5597ec129031fb61d8e165c75d'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x187541d7d312f742040f270d0221b4fe577934b0'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x1a1918b3066ae8233bf5ac56ab14532c4cc5e4fe'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x2ee39ff05643bc7cc9ed31b71e142429044a425c'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x44ff8620b8ca30902395a7bd3f2407e1a091bf73'
+  currency: ETH
+  label: Virtuals Protocol token (VIRTUAL) - Ethereum ERC-20 contract
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#virtuals-protocol-token-contract
+  context: '{"kind": "contract", "method": "ERC-20 name and symbol read from the contract on Ethereum mainnet"}'
+- address: '0x4750bcfcc340aa4b31be7e71fa072716d28c29c5'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x537050c4346edadbe068f272ef46b8db567571e2'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x5555555731006f71f121144534ca7c8799f66aa3'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x722122df12d4e14e13ac3b6895a86e84145b6967'
+  currency: ETH
+  label: Tornado Cash proxy
+  source: https://ofac.treasury.gov/recent-actions/20220808
+  context: '{"kind": "contract", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
+- address: '0x750312ae636551680d16fae4c4e4caa9fc4b341b'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x79a3f904399faa598fa8225d7c87b75b548af00a'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x8589427373d6d84e98730d7795d8f6f8731fda16'
+  currency: ETH
+  label: Tornado Cash router
+  source: https://ofac.treasury.gov/recent-actions/20220808
+  context: '{"kind": "contract", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
+- address: '0x8827c2f8fe6a840df401e9c31aeda4c149936c1b'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x9b9d8ece6554b4b6487552d6f5594e0299451639'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xc49415493eb3ec64a0f13d8aa5056f1cfc4ce35c'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xd095ddbc0bea971a3ffcb5b64eebafce13b59538'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xf10e69b0adf4a6cde0205af31e2aa90708a5c67c'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xf1f4f76c9969efbfb5c9a90a6e44c0e3696d3ef8'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xf6fc0d70e4c2f55f3b61f2e04038b4598fb41748'
+  currency: ETH
+  label: Tornado Cash interactor (sender)
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
+  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
+    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'

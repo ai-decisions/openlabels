@@ -28,7 +28,10 @@ repository itself ships NO regulator dumps):
   here, but FCA data dumps must not be committed to or redistributed
   from this repository.
 - OFAC SDN data (sanctionslistservice.ofac.treas.gov) is U.S. government
-  public information.
+  public information. The first-party TagPack in data/first-party/ cites
+  OFAC recent-actions pages and the SDN CSV per row where a fact comes
+  from OFAC; the remaining rows are AI DECISIONS' own on-chain
+  extractions (method in data/first-party/README.md).
 - OpenSanctions data is licensed CC-BY-NC 4.0: outputs derived from it
   (including TagPack rows with source "opensanctions") must not be
   redistributed in commercial contexts and are excluded from this
