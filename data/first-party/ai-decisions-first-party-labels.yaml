@@ -1,9 +1,102 @@
 title: AI DECISIONS first-party curated labels
 creator: AI DECISIONS (aidecisions.ai)
-description: Address labels curated by AI DECISIONS from first-party on-chain extraction and from cited public primary sources. Every tag carries the URI of the document that supports it; the per-set method
-  is in data/first-party/README.md.
-lastmod: '2026-09-05'
+description: 'Address labels curated by AI DECISIONS. Each tag''s context says whether it is ''sourced'' (a public record is cited per row: first-party on-chain extraction or an OFAC publication) or ''curated''
+  (AI DECISIONS'' own seed list, per-row public record not recorded); the per-set method is in data/first-party/README.md.'
+lastmod: '2026-09-06'
 tags:
+- address: '0x0000000000007f150bd6f54c40a34d7c3d5e9f56'
+  currency: ETH
+  label: 'Bot operator #2'
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "bot_operator", "type": "ai_agent"}'
+- address: '0x00000000000858fb94bfa4c09e59f12f24ff1bce'
+  currency: ETH
+  label: MEV Sandwich
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
+- address: '0x000000000035b5e5ad9019092c665357240f594e'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x0000000000771a79d0fc7f3b7fe270eb4498f20b'
+  currency: ETH
+  label: 0x0000...20b MEV
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
+- address: '0x00000000008c4fb1c916e0c88fd4cc402d935e7d'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x00000000009726632680fb29d3f7a9734e3010e2'
+  currency: ETH
+  label: Rainbow MEV
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
+- address: '0x0000000000bbc195cd687ee01bdf7ef75b50d5a9'
+  currency: ETH
+  label: 'Bot operator #3'
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "bot_operator", "type": "ai_agent"}'
+- address: '0x00000000219ab540356cbb839cbe05303d7705fa'
+  currency: ETH
+  label: ETH2 Beacon Deposit
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "deposit_contract", "type": "staking"}'
+- address: '0x00000000ae347930bd1e7b0f35588b92280f9e75'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x0000002a4c4e05c0e95049daf10ba69b8eeb58df'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x000000917de6037d52b1f0a306eecd208405f7cd'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x00000098163d8908dfbd126c873c9c4732a2c2e6'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x000000d40b595b94918a28b27d1e2c66f43a51d3'
+  currency: ETH
+  label: Uniswap arb bot
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "arbitrage_bot", "type": "ai_agent"}'
+- address: '0x00008d292fa65e0a02acd7a62ff2c0a1b7cb6d93'
+  currency: ETH
+  label: 'Bot operator #1'
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "bot_operator", "type": "ai_agent"}'
+- address: '0x02777053d6764996e594c3e88af1d3ea8e20df3d'
+  currency: ETH
+  label: 'Chainlink keeper #2'
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "chainlink_keeper", "type": "ai_agent"}'
+- address: '0x0681d8db095565fe8a346fa0277bffde9c0edbbf'
+  currency: ETH
+  label: Kraken 4
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x07ee55aa48bb72dcc6e9d78256648910de513eca'
+  currency: ETH
+  label: OKX 2
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0x098b716b8aaf21512996dc57eb0615e2383e2f96'
   currency: ETH
   label: Lazarus Group (Ronin Bridge exploiter)
@@ -14,49 +107,180 @@ tags:
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x1111111254eeb25477b68fb85ed929f73a960582'
+  currency: ETH
+  label: 1inch aggregator
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "arbitrage_bot", "type": "ai_agent"}'
+- address: '0x12345678b8d1b5d42a7bc92eef92a1b2e7d2e7a9'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
 - address: '0x187541d7d312f742040f270d0221b4fe577934b0'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
 - address: '0x1a1918b3066ae8233bf5ac56ab14532c4cc5e4fe'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x1f9090aae28b8a3dceadf281b0f12828e676c326'
+  currency: ETH
+  label: rsync-builder
+  source: https://github.com/flashbots/mev-boost-relay
+  context: '{"kind": "wallet", "provenance": "curated", "method": "block-builder fee recipients from the public mev-boost relay builder lists; per-row link not recorded", "subtype": "flashbots_builder",
+    "type": "ai_agent"}'
+- address: '0x21a31ee1afc51d94c2efccaa2092ad1028285549'
+  currency: ETH
+  label: Binance 15
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x236f9f97e0e62388479bf9e5ba4889e46b0273c3'
+  currency: ETH
+  label: Gemini
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x23f7e55e86e4eed4eee68cd98c2d1dea8e8d59d5'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x280027dd00ee0050d3f9d168efd6b40090009246'
+  currency: ETH
+  label: Arrakis MEV
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
+- address: '0x28c6c06298d514db089934071355e5743bf21d60'
+  currency: ETH
+  label: Binance 14
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x2b5634c42055806a59e9107ed44d43c426e58258'
+  currency: ETH
+  label: KuCoin 1
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0x2ee39ff05643bc7cc9ed31b71e142429044a425c'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x39aa39c021dfbae8fac545936693ac917d5e7563'
+  currency: ETH
+  label: Compound cUSDC
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "lending_market", "type": "defi_protocol"}'
+- address: '0x3cd751e6b0078be393132286c442345e5dc49699'
+  currency: ETH
+  label: Coinbase 4
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0x44ff8620b8ca30902395a7bd3f2407e1a091bf73'
   currency: ETH
   label: Virtuals Protocol token (VIRTUAL) - Ethereum ERC-20 contract
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#virtuals-protocol-token-contract
-  context: '{"kind": "contract", "method": "ERC-20 name and symbol read from the contract on Ethereum mainnet"}'
+  context: '{"kind": "contract", "provenance": "sourced", "method": "ERC-20 name and symbol read from the contract on Ethereum mainnet"}'
+- address: '0x4675c7e5baafbffbca748158becba61ef3b0a263'
+  currency: ETH
+  label: Jared from SubwayBot
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
 - address: '0x4750bcfcc340aa4b31be7e71fa072716d28c29c5'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x503828976d22510aad0201ac7ec88293211d23da'
+  currency: ETH
+  label: Coinbase 2
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0x537050c4346edadbe068f272ef46b8db567571e2'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
 - address: '0x5555555731006f71f121144534ca7c8799f66aa3'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x55a5705453ee82c742274154136fce8149597058'
+  currency: ETH
+  label: 'Liquidation bot #1'
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "liquidation_bot", "type": "ai_agent"}'
+- address: '0x56eddb7aa87536c09ccc2793473599fd21a8b17f'
+  currency: ETH
+  label: Binance 17
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x5d4090ae33ff7d9728e84001d8ecf36ee0937f28'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x5d9c4fa0b4b2eb8cba6a8b0bac57a7cd5c5f6e6c'
+  currency: ETH
+  label: Chainlink keeper
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "chainlink_keeper", "type": "ai_agent"}'
+- address: '0x683913b3a32ada4f8100458a3e1675425bdaa7df'
+  currency: ETH
+  label: Gelato executor
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "gelato_executor", "type": "ai_agent"}'
+- address: '0x689c56aef474df92d44a1b70850f808488f9769c'
+  currency: ETH
+  label: KuCoin 2
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x690b9a9e9aa1c9db991c7721a92d351db4fac990'
+  currency: ETH
+  label: builder0x69
+  source: https://github.com/flashbots/mev-boost-relay
+  context: '{"kind": "wallet", "provenance": "curated", "method": "block-builder fee recipients from the public mev-boost relay builder lists; per-row link not recorded", "subtype": "flashbots_builder",
+    "type": "ai_agent"}'
+- address: '0x6b75d8af000000e20b7a7ddf000ba900b4009a80'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0x6cc5f688a315f3dc28a7781717a9a798a59fda7b'
+  currency: ETH
+  label: OKX
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0x71660c4005ba85c37ccec55d0c4493e66fe775d3'
+  currency: ETH
+  label: Coinbase 1
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0x722122df12d4e14e13ac3b6895a86e84145b6967'
   currency: ETH
   label: Tornado Cash proxy
@@ -66,58 +290,214 @@ tags:
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
 - address: '0x79a3f904399faa598fa8225d7c87b75b548af00a'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x7d2768de32b0b80b7a3454c06bdac94a69ddc7a9'
+  currency: ETH
+  label: Aave V2 LendingPool
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "lending_pool", "type": "defi_protocol"}'
+- address: '0x7e2a2fa2a064f693f0a55c5639476d913ff12d05'
+  currency: ETH
+  label: MEV Bot
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
+- address: '0x7f19720a857f834887fc9a7bc0a0fbe7fc7f8102'
+  currency: ETH
+  label: Secondeye Solution
+  source: https://www.treasury.gov/ofac/downloads/sdn.csv
+  context: '{"kind": "wallet", "ofac": "SDN entry Secondeye Solution; on the list in our OFAC copy of the build date", "previously_recorded_as": "Lazarus (DPRK) \u2014 corrected to the SDN entry name on
+    2026-09-06", "provenance": "sourced"}'
+  category: sanction
 - address: '0x8589427373d6d84e98730d7795d8f6f8731fda16'
   currency: ETH
   label: Tornado Cash router
   source: https://ofac.treasury.gov/recent-actions/20220808
   context: '{"kind": "contract", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
+- address: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2'
+  currency: ETH
+  label: Aave V3 Pool
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "lending_pool", "type": "defi_protocol"}'
 - address: '0x8827c2f8fe6a840df401e9c31aeda4c149936c1b'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0x89d9aa7b0f1d60cc25c5c0a8fcde2a2b1b9b3a4b'
+  currency: ETH
+  label: Compound liquidator
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "liquidation_bot", "type": "ai_agent"}'
+- address: '0x940f0d6eab58eb9be4b1603ee0c6ee9c92f3f4f1'
+  currency: ETH
+  label: DPRK mixer
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#curated-without-a-public-record
+  context: '{"kind": "wallet", "provenance": "curated", "note": "AI DECISIONS curation; no public record cited; not on the OFAC copy of 2026-09-05"}'
+- address: '0x9696f59e4d72e237be84ffd425dcad154bf96976'
+  currency: ETH
+  label: Binance 18
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0x9b9d8ece6554b4b6487552d6f5594e0299451639'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xa1006d0051a35b0000f961a8000000009ea67273'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0xa17581a9e3356d9a858b789d68b4d866e593ae94'
+  currency: ETH
+  label: Compound cETH
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "lending_market", "type": "defi_protocol"}'
+- address: '0xa2e1c51cc8c7e59a1aa3fa57b7d0d01ae8a8e62a'
+  currency: ETH
+  label: Aave liquidator
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "liquidation_bot", "type": "ai_agent"}'
+- address: '0xa69babef1ca67a37ffaf7a485dfff3382056e78c'
+  currency: ETH
+  label: Flashbots MEV searcher
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "mev_bot", "type": "ai_agent"}'
+- address: '0xa8e7d3c7b8e0f7f1d7e0b9e0a8b7c6d5e4f3e2d1'
+  currency: ETH
+  label: titan-builder
+  source: https://github.com/flashbots/mev-boost-relay
+  context: '{"kind": "wallet", "provenance": "curated", "method": "block-builder fee recipients from the public mev-boost relay builder lists; per-row link not recorded", "subtype": "flashbots_builder",
+    "type": "ai_agent"}'
+- address: '0xa910f92acdaf488fa6ef02174fb86208ad7722ba'
+  currency: ETH
+  label: Poloniex
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0xaab27b150451726ec7738aa1d0a94505c8729bd1'
+  currency: ETH
+  label: eth-builder
+  source: https://github.com/flashbots/mev-boost-relay
+  context: '{"kind": "wallet", "provenance": "curated", "method": "block-builder fee recipients from the public mev-boost relay builder lists; per-row link not recorded", "subtype": "flashbots_builder",
+    "type": "ai_agent"}'
+- address: '0xab5c66752a9e8167967685f1450532fb96d5d24f'
+  currency: ETH
+  label: Huobi 2
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0xae2d4617c862309a3d75a0ffb358c7a5009c673f'
+  currency: ETH
+  label: Kraken 5
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0xae7ab96520de3a18e5e111b5eaab095312d7fe84'
+  currency: ETH
+  label: Lido stETH
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "liquid_staking", "type": "staking"}'
+- address: '0xb5d85cbf7cb3ee0d56b3bb207d5fc4b82f43f511'
+  currency: ETH
+  label: Coinbase 5
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0xbbbb8d51cfa4ae6be7af2a1a46a66b13f2a2ff36'
+  currency: ETH
+  label: MEV searcher
+  source: https://github.com/flashbots/mev-inspect-py
+  context: '{"kind": "wallet", "provenance": "curated", "method": "top MEV searcher addresses by profit from public dashboards (libMEV) and mev-inspect-py output; per-row link not recorded", "subtype":
+    "mev_searcher", "type": "ai_agent"}'
+- address: '0xbbbbbbbbd86b1fc92b0ad65d6b8b1b4b3b3b3b3b'
+  currency: ETH
+  label: rsync-builder-2
+  source: https://github.com/flashbots/mev-boost-relay
+  context: '{"kind": "wallet", "provenance": "curated", "method": "block-builder fee recipients from the public mev-boost relay builder lists; per-row link not recorded", "subtype": "flashbots_builder",
+    "type": "ai_agent"}'
+- address: '0xbd79e07e5cef7b8fa64b18d28e70f7acfaad4f48'
+  currency: ETH
+  label: Gelato Chainlink keeper
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "gelato_executor", "type": "ai_agent"}'
+- address: '0xc00e94cb662c3520282e6f5717214004a7f26888'
+  currency: ETH
+  label: Compound governance
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "governance_token", "type": "defi_protocol"}'
+- address: '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'
+  currency: ETH
+  label: WETH contract
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "contract", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "wrapped_token", "type": "defi_protocol"}'
 - address: '0xc49415493eb3ec64a0f13d8aa5056f1cfc4ce35c'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
 - address: '0xd095ddbc0bea971a3ffcb5b64eebafce13b59538'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+- address: '0xdafea492d9c6733ae3d56b7ed1adb60692c98bc5'
+  currency: ETH
+  label: flashbots-builder
+  source: https://github.com/flashbots/mev-boost-relay
+  context: '{"kind": "wallet", "provenance": "curated", "method": "block-builder fee recipients from the public mev-boost relay builder lists; per-row link not recorded", "subtype": "flashbots_builder",
+    "type": "ai_agent"}'
+- address: '0xdc76cd25977e0a5ae17155770273ad58648900d3'
+  currency: ETH
+  label: Huobi 1
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0xddfabcdc4d8ffc6d5beaf154f18b778f892a0740'
+  currency: ETH
+  label: Coinbase 3
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
+- address: '0xdef1c0ded9bec7f1a1670819833240f027b25eff'
+  currency: ETH
+  label: 0x Protocol exchange proxy
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#ethereum-bots-agents-and-protocol-contracts-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated list from public forensics work; per-row source not recorded", "subtype": "arbitrage_bot", "type": "ai_agent"}'
+- address: '0xdfd5293d8e347dfe59e90efd55b2956a1343963d'
+  currency: ETH
+  label: Binance 16
+  source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#exchange-hot-wallets-curated
+  context: '{"kind": "wallet", "provenance": "curated", "method": "AI DECISIONS curated seed list of exchange hot wallets (public knowledge; verify on any explorer)", "type": "exchange"}'
+  category: exchange
 - address: '0xf10e69b0adf4a6cde0205af31e2aa90708a5c67c'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
 - address: '0xf1f4f76c9969efbfb5c9a90a6e44c0e3696d3ef8'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
 - address: '0xf6fc0d70e4c2f55f3b61f2e04038b4598fb41748'
   currency: ETH
   label: Tornado Cash interactor (sender)
   source: https://github.com/ai-decisions/openlabels/blob/main/data/first-party/README.md#tornado-cash-interactors
-  context: '{"kind": "wallet", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado Cash router, proxy or
-    pool contract", "note": "an on-chain interaction, not a finding about the holder"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "method": "first-party extraction from Ethereum transaction data: this address appears as from_address of a transaction whose to_address is a Tornado
+    Cash router, proxy or pool contract", "note": "an on-chain interaction, not a finding about the holder"}'

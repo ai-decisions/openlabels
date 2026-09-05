@@ -43,12 +43,14 @@ excluded and must not be added.
 ## First-party curated labels (the one data file)
 
 `data/first-party/ai-decisions-first-party-labels.yaml` is a small TagPack of
-labels AI DECISIONS curated itself: first-party on-chain extractions (method
-stated per set) and facts carried by cited OFAC publications. Every row's
-`source` is the document that supports it; nothing derived from a third-party
-name-tag service, a dashboard or an unlicensed dataset is in it. See
-`data/first-party/README.md` for the sets, the method and the correction policy.
-This is the dataset the TagPack generator's `REPO_URI` provenance points at.
+labels AI DECISIONS curated itself. Every row's `context.provenance` says
+whether it is `sourced` (first-party on-chain extraction with the method
+stated, or a fact carried by a cited OFAC publication) or `curated` (our own
+seed list, per-row public record not recorded — a lead to verify, not a
+finding). Nothing derived from an unlicensed dataset (OpenSanctions, Spellbook)
+is in it. See `data/first-party/README.md` for the sets, the method and the
+correction policy. This is the dataset the TagPack generator's `REPO_URI`
+provenance points at.
 
 ## Install
 
