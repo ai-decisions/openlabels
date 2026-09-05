@@ -101,7 +101,7 @@ tags:
   currency: ETH
   label: Lazarus Group (Ronin Bridge exploiter)
   source: https://www.treasury.gov/ofac/downloads/sdn.csv
-  context: '{"kind": "wallet", "ofac": "SDN entry Lazarus Group, designation 2022-04-14; on the list in our OFAC copy of the build date", "designation": "https://ofac.treasury.gov/recent-actions/20220414"}'
+  context: '{"kind": "wallet", "provenance": "sourced", "ofac": "SDN entry Lazarus Group, designation 2022-04-14; on the list in our OFAC copy of the build date", "designation": "https://ofac.treasury.gov/recent-actions/20220414"}'
   category: sanction
 - address: '0x0fcd14b79d3eba5597ec129031fb61d8e165c75d'
   currency: ETH
@@ -285,7 +285,7 @@ tags:
   currency: ETH
   label: Tornado Cash proxy
   source: https://ofac.treasury.gov/recent-actions/20220808
-  context: '{"kind": "contract", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
+  context: '{"kind": "contract", "provenance": "sourced", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
 - address: '0x750312ae636551680d16fae4c4e4caa9fc4b341b'
   currency: ETH
   label: Tornado Cash interactor (sender)
@@ -319,7 +319,7 @@ tags:
   currency: ETH
   label: Tornado Cash router
   source: https://ofac.treasury.gov/recent-actions/20220808
-  context: '{"kind": "contract", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
+  context: '{"kind": "contract", "provenance": "sourced", "ofac": "designated 2022-08-08 (Cyber-related Designation); removed from the SDN list 2025-03-21", "removal": "https://ofac.treasury.gov/recent-actions/20250321"}'
 - address: '0x87870bca3f3fd6335c3f4ce8392d69350b4fa4e2'
   currency: ETH
   label: Aave V3 Pool
