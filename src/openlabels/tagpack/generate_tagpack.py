@@ -20,6 +20,10 @@ our label types onto the GraphSense concept taxonomy where the mapping is clean;
 unmappable types ride through as `abuse` only when genuinely abusive, else the
 tag carries no concept (allowed by schema).
 
+One tag per label CHAIN: a record's labels may sit on two chains when the same
+20-byte payload is an EVM address and a Tron address (the store keys both under
+one hex); each label's chain decides the tag's currency and address form.
+
 Confidence and actors: every tag gets a GraphSense confidence level from its
 label source (SOURCE_CONFIDENCE; a source not in the table is emitted as the
 explicit taxonomy floor `unknown`), hoisted to the header when the whole pack
@@ -138,16 +142,28 @@ def build(
         data = json.load(f)
 
     tags: list[dict] = []
+    # One tag per (address, currency, label, source). Two label chains that map to
+    # the same GraphSense currency (ethereum + arbitrum → ETH; OFAC lists SIM Hyon
+    # Sop's 0x4f47bc… under both) must not become two identical tags — the
+    # official validator flags the duplicate. Such a tag lists every EVM chain the
+    # address is labelled on in `context.chains`; a single L2 keeps `evm_chain`.
+    seen_tag: dict[tuple, dict] = {}
+    tag_chains: dict[tuple, list[str]] = {}
     skipped_chain: dict[str, int] = {}
     skipped_unsourced: dict[str, int] = {}
     skipped_licence: dict[str, int] = {}
     for addr, rec in data.items():
-        chain = rec.get("chain", "")
-        currency = CHAIN_TO_CURRENCY.get(chain)
-        if currency is None:
-            skipped_chain[chain] = skipped_chain.get(chain, 0) + 1
-            continue
+        rec_chain = rec.get("chain", "")
         for lbl in rec.get("labels", []):
+            # The label's chain wins over the record's: the store is address-keyed,
+            # and a Tron address whose 20-byte payload equals an EVM address shares
+            # its key (GAZA NOW, SDN-47635) — the record says ethereum, the tron
+            # label is the second chain and gets its own tag (2026-09-14).
+            chain = lbl.get("chain") or rec_chain
+            currency = CHAIN_TO_CURRENCY.get(chain)
+            if currency is None:
+                skipped_chain[chain] = skipped_chain.get(chain, 0) + 1
+                continue
             src = lbl.get("source", "")
             if src in excluded_sources:
                 skipped_licence[src] = skipped_licence.get(src, 0) + 1
@@ -162,27 +178,39 @@ def build(
             tag_addr = rec.get("address", addr)
             if chain == "tron" and len(tag_addr) == 42 and tag_addr.startswith("0x"):
                 tag_addr = hex_to_base58check(tag_addr)
+            # strip BEFORE truthiness: a whitespace-only name (" ") is truthy and
+            # sailed through to a schema-invalid empty label (GraphSense validator
+            # caught it 2026-07-25; the presence-only local check below did not).
+            label = (lbl.get("name") or "").strip() or (lbl.get("type") or "").strip() or "unknown"
+            source = uri or f"unverified:{src}"
+            tkey = (tag_addr, currency, label, source)
+            if tkey in seen_tag:
+                if chain not in tag_chains[tkey]:
+                    tag_chains[tkey].append(chain)
+                continue
             tag = {
                 "address": tag_addr,
                 "currency": currency,
-                # strip BEFORE truthiness: a whitespace-only name (" ") is truthy and
-                # sailed through to a schema-invalid empty label (GraphSense validator
-                # caught it 2026-07-25; the presence-only local check below did not).
-                "label": (lbl.get("name") or "").strip()
-                or (lbl.get("type") or "").strip()
-                or "unknown",
-                "source": uri or f"unverified:{src}",
+                "label": label,
+                "source": source,
             }
             cat = TYPE_TO_CATEGORY.get(lbl.get("type", ""))
             if cat:
                 tag["category"] = cat
-            if chain not in ("bitcoin", "ethereum", "tron", "litecoin"):
-                tag["context"] = json.dumps({"evm_chain": chain})
             tag["confidence"] = SOURCE_CONFIDENCE.get(src, CONFIDENCE_FLOOR)
-            actor = ACTOR_BY_LABEL.get(tag["label"])
+            actor = ACTOR_BY_LABEL.get(label)
             if actor:
                 tag["actor"] = actor
+            seen_tag[tkey] = tag
+            tag_chains[tkey] = [chain]
             tags.append(tag)
+
+    for tkey, chains in tag_chains.items():
+        tag = seen_tag[tkey]
+        if len(chains) > 1:
+            tag["context"] = json.dumps({"chains": sorted(chains)})
+        elif chains[0] not in ("bitcoin", "ethereum", "tron", "litecoin"):
+            tag["context"] = json.dumps({"evm_chain": chains[0]})
 
     if len(tags) < min_rows:
         raise SystemExit(f"FAIL: only {len(tags)} tags produced, floor is {min_rows}")

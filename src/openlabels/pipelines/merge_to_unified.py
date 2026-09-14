@@ -75,14 +75,25 @@ def load_base(base_path: Path | None) -> dict[str, dict]:
         return json.load(fh)
 
 
+def _label_key(lab: dict) -> tuple:
+    return (lab.get("name"), lab.get("source"), lab.get("chain"))
+
+
 def merge_label_entries(
     existing: list[dict], incoming: list[dict]
 ) -> list[dict]:
-    """Dedupe on (name, source). First-wins on conflict; append new."""
-    seen = {(e.get("name"), e.get("source")) for e in existing}
+    """Dedupe on (name, source, chain). First-wins on conflict; append new.
+
+    `chain` is part of the key (2026-09-14): OFAC lists GAZA NOW (SDN-47635)
+    with one 20-byte payload as an ETH address and as its Tron encoding; both
+    normalise to the same hex key, and a (name, source) key silently dropped
+    the tron label — the public pack lost the address on Tron. The same name
+    and source on two chains are two facts, not a duplicate.
+    """
+    seen = {_label_key(e) for e in existing}
     out = list(existing)
     for lab in incoming:
-        key = (lab.get("name"), lab.get("source"))
+        key = _label_key(lab)
         if key not in seen:
             out.append(lab)
             seen.add(key)
@@ -93,7 +104,7 @@ def merge_records(existing: dict, incoming: dict) -> dict:
     """Merge one raw record into the existing entry for the same address.
 
     Rules:
-      - `labels[]`      → union (dedup on (name, source))
+      - `labels[]`      → union (dedup on (name, source, chain))
       - `sanctioned`    → OR (True dominates)
       - `is_illicit`    → OR
       - `is_exchange`   → OR
