@@ -79,12 +79,12 @@ _TICKER_TO_CHAIN: dict[str, str] = {
     "XMR": "monero",
     "LTC": "litecoin",
     "DOGE": "dogecoin",
-    "XRP": "ripple",
+    "XRP": "xrp",  # contract S gate B (2026-09-14): one name, as the Lambda and the store
     "ZEC": "zcash",
     "DASH": "dash",
     "XVG": "verge",
     "SOL": "solana",
-    "BNB": "bnb",
+    "BNB": "bnb_beacon",  # BNB Beacon Chain (bnb1… bech32); BNB Smart Chain is BSC → bsc
     "ARB": "arbitrum",
     "BASE": "base",
     "BSC": "bsc",
@@ -92,6 +92,42 @@ _TICKER_TO_CHAIN: dict[str, str] = {
 # Token tickers say nothing about the chain (USDT runs on Ethereum, Tron, Omni;
 # USDC on Ethereum, Tron, Solana): the address format decides.
 _TOKEN_TICKERS = frozenset({"USDT", "USDC"})
+
+_B58_RE = re.compile(r"^[1-9A-HJ-NP-Za-km-z]+$")
+
+
+def _shape_chain(address: str) -> str:
+    """Chain by address form alone, in the order the sanctions Lambda uses (contract S,
+    S5 — the three copies must answer alike for a token ticker on any chain): tron,
+    EVM, bitcoin (base58check or bech32), litecoin, xrp, monero, dogecoin, solana."""
+    a = address.strip()
+    if is_tron_base58check(a):
+        return "tron"
+    if _EVM_ADDR_RE.match(a):
+        return "ethereum"
+    if is_bitcoin_base58check(a) or a.lower().startswith("bc1"):
+        return "bitcoin"
+    if a.lower().startswith("ltc1") or (
+        a[:1] in ("L", "M") and 26 <= len(a) <= 35 and _B58_RE.match(a)
+    ):
+        return "litecoin"
+    if a[:1] == "r" and 25 <= len(a) <= 35 and _B58_RE.match(a):
+        return "xrp"
+    if len(a) in (95, 106) and a[:1] in ("4", "8") and _B58_RE.match(a):
+        return "monero"
+    if len(a) == 34 and a[:1] == "D" and _B58_RE.match(a):
+        return "dogecoin"
+    if len(a) == 35 and a[:2] in ("t1", "t3") and _B58_RE.match(a):
+        return "zcash"
+    if len(a) == 34 and a[:1] == "X" and _B58_RE.match(a):
+        return "dash"
+    if len(a) == 34 and a[:1] in ("G", "A") and _B58_RE.match(a):
+        return "bitcoin_gold"
+    if a.lower().startswith("bnb1") and len(a) == 42:
+        return "bnb_beacon"
+    if 32 <= len(a) <= 44 and _B58_RE.match(a):
+        return "solana"
+    return "unknown"
 
 
 def _infer_chain(ticker: str, address: str) -> str:
@@ -109,13 +145,9 @@ def _infer_chain(ticker: str, address: str) -> str:
     if is_tron_base58check(address):
         return "tron"
     if ticker in _TOKEN_TICKERS:
-        if _EVM_ADDR_RE.match(address):
-            return "ethereum"
-        if _TRON_ADDR_RE.match(address):
-            return "tron"
-        if is_bitcoin_base58check(address):
-            return "bitcoin"  # Omni-layer USDT rides on a plain Bitcoin address
-        return "unknown"
+        # USDT rides on Ethereum, Tron and Omni (a plain Bitcoin address); USDC also on
+        # Solana — the address form decides, in the shared order of _shape_chain.
+        return _shape_chain(address)
     return _TICKER_TO_CHAIN.get(ticker, "unknown")
 
 

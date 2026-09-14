@@ -22,6 +22,7 @@ import html as htmlmod
 import json
 import re
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -30,14 +31,48 @@ from openlabels.ofac_attributed import _infer_chain
 HEX_RE = re.compile(r"\b0x[0-9a-fA-F]{40}\b")
 TRON_B58_RE = re.compile(r"\bT[1-9A-HJ-NP-Za-km-z]{33}\b")
 BTC_LEGACY_RE = re.compile(r"\b[13][1-9A-HJ-NP-Za-km-z]{25,34}\b")
-BTC_BECH32_RE = re.compile(r"\bbc1[02-9ac-hj-np-z]{38,58}\b")
+# bech32/bech32m: P2WPKH is 42 chars, P2WSH and taproot 62, the spec allows 90. The old
+# {38,58} cap missed every 62-character address (8 on the cached OFAC pages, 2026-09-14).
+BTC_BECH32_RE = re.compile(r"\bbc1[02-9ac-hj-np-z]{38,87}\b")
 LTC_RE = re.compile(r"\b(ltc1[02-9ac-hj-np-z]{38,58}|[LM][1-9A-HJ-NP-Za-km-z]{25,34})\b")
 XMR_RE = re.compile(r"\b[48][1-9A-HJ-NP-Za-km-z]{94,105}\b")
 
 ACTION_LINK_RE = re.compile(r'href="(/recent-actions/[0-9a-zA-Z_\-\.]+)"')
 # OFAC prints every listed address with its ticker: "Digital Currency Address - ETH 0x…";
 # "alt. Digital Currency Address - ARB 0x…" repeats the same address per chain.
-TICKER_ADDR_RE = re.compile(r"Digital Currency Address\s*-\s*([A-Z]{2,8})\s+([A-Za-z0-9]{20,90})")
+# Contract S (S2, 2026-09-14): the token is read whole — the old {20,90} cap cut every
+# 95-character Monero address at 90 and the cut string became a second, phantom
+# "sanctioned" address (7 on the cached pages). A matched token must then LOOK like an
+# address of the inferred chain (_shape_ok); an unknown ticker is never guessed by shape.
+TICKER_ADDR_RE = re.compile(r"Digital Currency Address\s*-\s*([A-Z]{2,8})\s+([A-Za-z0-9]{20,120})")
+_EVM_LIKE = {
+    "ethereum",
+    "ethereum_classic",
+    "arbitrum",
+    "bsc",
+    "base",
+    "optimism",
+    "polygon",
+    "gnosis",
+    "avalanche_c",
+}
+
+
+def _shape_ok(chain: str, addr: str) -> bool:
+    """False when a ticker-attributed token is not an address of that chain."""
+    if chain in _EVM_LIKE:
+        return HEX_RE.fullmatch(addr) is not None
+    if chain == "tron":
+        return TRON_B58_RE.fullmatch(addr) is not None
+    if chain == "bitcoin":
+        return (
+            BTC_LEGACY_RE.fullmatch(addr) is not None or BTC_BECH32_RE.fullmatch(addr) is not None
+        )
+    if chain == "litecoin":
+        return LTC_RE.fullmatch(addr) is not None
+    if chain == "monero":
+        return XMR_RE.fullmatch(addr) is not None
+    return True  # no fixed format known here (zcash, dash, solana, …)
 
 
 def extract_action_links(index_dir: Path) -> list[str]:
@@ -71,10 +106,18 @@ def fetch_action_page(url_path: str, cache_dir: Path) -> str | None:
     full_url = f"https://ofac.treasury.gov{url_path}"
     try:
         r = subprocess.run(
-            ["curl", "-sL", "--max-time", "30",
-             "-A", "Mozilla/5.0 (compatible; AIDecisionsBot/1.0)",
-             full_url],
-            capture_output=True, text=True, timeout=35,
+            [
+                "curl",
+                "-sL",
+                "--max-time",
+                "30",
+                "-A",
+                "Mozilla/5.0 (compatible; AIDecisionsBot/1.0)",
+                full_url,
+            ],
+            capture_output=True,
+            text=True,
+            timeout=35,
         )
         if r.returncode != 0 or not r.stdout or len(r.stdout) < 500:
             return None
@@ -87,7 +130,9 @@ def fetch_action_page(url_path: str, cache_dir: Path) -> str | None:
 
 
 def fetch_action_page_concurrent(
-    links: list[str], cache_dir: Path, max_workers: int = 4,
+    links: list[str],
+    cache_dir: Path,
+    max_workers: int = 4,
 ) -> dict[str, str]:
     """Concurrent download with bounded parallelism.
 
@@ -99,8 +144,7 @@ def fetch_action_page_concurrent(
 
     results: dict[str, str] = {}
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
-        futures = {ex.submit(fetch_action_page, link, cache_dir): link
-                   for link in links}
+        futures = {ex.submit(fetch_action_page, link, cache_dir): link for link in links}
         for i, fut in enumerate(as_completed(futures)):
             link = futures[fut]
             try:
@@ -110,8 +154,7 @@ def fetch_action_page_concurrent(
             if html:
                 results[link] = html
             if (i + 1) % 100 == 0:
-                print(f"  fetched {i+1}/{len(links)} (ok={len(results)})",
-                      flush=True)
+                print(f"  fetched {i+1}/{len(links)} (ok={len(results)})", flush=True)
     return results
 
 
@@ -135,7 +178,9 @@ def extract_addresses_from_html(html: str) -> dict[str, set[str]]:
         # Conservative: accept only if there's no adjacent alpha char.
         out.setdefault("bitcoin", set()).add(addr)
     for m in LTC_RE.finditer(html):
-        out.setdefault("litecoin", set()).add(m.group(0).lower() if m.group(0).startswith("ltc1") else m.group(0))
+        out.setdefault("litecoin", set()).add(
+            m.group(0).lower() if m.group(0).startswith("ltc1") else m.group(0)
+        )
     for m in XMR_RE.finditer(html):
         out.setdefault("monero", set()).add(m.group(0))
     return out
@@ -145,7 +190,9 @@ def _norm_addr(addr: str) -> str:
     return addr.lower() if addr.startswith("0x") else addr
 
 
-def extract_addresses_with_evidence(html: str) -> dict[str, set[tuple[str, str]]]:
+def extract_addresses_with_evidence(
+    html: str, stats: dict[str, int] | None = None
+) -> dict[str, set[tuple[str, str]]]:
     """{address: {(chain, evidence)}} — chain from the ticker OFAC prints next to the
     address ("ticker", via the shape-first inference shared with the SDN parser; one
     address listed under ETH, ARB and BSC yields three chains), else from the address
@@ -154,24 +201,51 @@ def extract_addresses_with_evidence(html: str) -> dict[str, set[tuple[str, str]]
     OFAC wrote — SIM Hyon Sop's 0x4f47bc… lost its ARB and BSC listings."""
     text = htmlmod.unescape(html)
     out: dict[str, set[tuple[str, str]]] = {}
+    stats = stats if stats is not None else {}
+    unknown_ticker: set[str] = set()
     for m in TICKER_ADDR_RE.finditer(text):
         ticker, addr = m.group(1), m.group(2)
         chain = _infer_chain(ticker, addr)
         if chain == "unknown":
-            continue  # a ticker/shape pair the inference does not know — no guess
+            # a ticker the inference does not know — no guess, not even by shape below
+            unknown_ticker.add(_norm_addr(addr))
+            stats["skipped_unknown_ticker"] = stats.get("skipped_unknown_ticker", 0) + 1
+            print(
+                f"ERROR parse_ofac_press_releases: unknown ticker {ticker!r} for {addr[:24]}… — "
+                "skipped, no guess",
+                file=sys.stderr,
+            )
+            continue
+        if not _shape_ok(chain, addr):
+            stats["skipped_shape_mismatch"] = stats.get("skipped_shape_mismatch", 0) + 1
+            print(
+                f"ERROR parse_ofac_press_releases: {ticker} token {addr[:24]}… (len {len(addr)}) is "
+                f"not a {chain} address — skipped",
+                file=sys.stderr,
+            )
+            continue
         out.setdefault(_norm_addr(addr), set()).add((chain, "ticker"))
-    for chain, addrs in extract_addresses_from_html(html).items():
+    # the shape pass reads the same unescaped text as the ticker pass (an entity-encoded
+    # address was found by one and missed by the other — security audit R16)
+    for chain, addrs in extract_addresses_from_html(text).items():
         for addr in addrs:
             key = _norm_addr(addr)
-            if key not in out:
-                out[key] = {(chain, "shape")}
+            if key in out:
+                continue
+            if key in unknown_ticker:
+                stats["skipped_unknown_ticker"] = stats.get(
+                    "skipped_unknown_ticker", 0
+                )  # counted above
+                continue
+            out[key] = {(chain, "shape")}
     return out
 
 
 def extract_entity_and_program(html: str) -> tuple[str, list[str], str]:
     """Get primary entity name, OFAC program tags, publication date."""
-    # <h1> usually has action title
-    m = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.DOTALL)
+    # <h1> usually has action title. Contract S (S2/R14): without a closing tag the lazy
+    # search is quadratic in the number of "<h1" occurrences — skip it on a torn page.
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.DOTALL) if "</h1>" in html else None
     title = ""
     if m:
         title = re.sub(r"<[^>]+>", " ", m.group(1))
@@ -204,19 +278,24 @@ def extract_entity_and_program(html: str) -> tuple[str, list[str], str]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--index-dir", type=Path,
+        "--index-dir",
+        type=Path,
         default=Path("data/labels_raw"),
     )
     parser.add_argument(
-        "--cache-dir", type=Path,
+        "--cache-dir",
+        type=Path,
         default=Path("data/labels_raw/ofac_action_pages"),
     )
     parser.add_argument(
-        "--output", type=Path,
+        "--output",
+        type=Path,
         default=Path("data/labels_raw/ofac_press_releases_parsed.json"),
     )
     parser.add_argument(
-        "--max-actions", type=int, default=0,
+        "--max-actions",
+        type=int,
+        default=0,
         help="Limit number of action pages (0 = all)",
     )
     args = parser.parse_args()
@@ -232,8 +311,7 @@ def main() -> None:
     n_addrs = 0
     chain_counts: dict[str, int] = {}
 
-    print(f"Fetching {len(links)} action pages (concurrent, 4 workers)...",
-          flush=True)
+    print(f"Fetching {len(links)} action pages (concurrent, 4 workers)...", flush=True)
     html_map = fetch_action_page_concurrent(links, args.cache_dir, max_workers=4)
     print(f"Fetched: {len(html_map)} / {len(links)}", flush=True)
 
@@ -280,8 +358,7 @@ def main() -> None:
                 n_addrs += 1
 
         if (i + 1) % 20 == 0:
-            print(f"  [{i+1}/{len(links)}] fetched={n_fetched} addrs={n_addrs}",
-                  flush=True)
+            print(f"  [{i+1}/{len(links)}] fetched={n_fetched} addrs={n_addrs}", flush=True)
 
     print(f"\nFetched {n_fetched} action pages, emitted {len(records)} records")
     print(f"By chain: {sorted(chain_counts.items(), key=lambda x: -x[1])}")

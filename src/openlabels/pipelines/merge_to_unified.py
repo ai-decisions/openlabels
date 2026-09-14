@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import get_args
 
 from openlabels.address_case import canonical_case, is_case_destroyed
-from openlabels.chains import normalize_chain
+from openlabels.chains import is_canonical_chain, normalize_chain, resolve_bnb
 from openlabels.tron_address import InvalidTronAddress, base58check_to_hex
 from openlabels.unified import EntityCategory, LicenseStatus, UnifiedLabelRecord
 
@@ -76,13 +76,15 @@ def load_base(base_path: Path | None) -> dict[str, dict]:
         return json.load(fh)
 
 
+# A single address token (contract S, S11): letters, digits and the cashaddr colon.
+_ADDRESS_TOKEN_RE = re.compile(r"[A-Za-z0-9:]{20,120}")
+
+
 def _label_key(lab: dict) -> tuple:
     return (lab.get("name"), lab.get("source"), lab.get("chain"))
 
 
-def merge_label_entries(
-    existing: list[dict], incoming: list[dict]
-) -> list[dict]:
+def merge_label_entries(existing: list[dict], incoming: list[dict]) -> list[dict]:
     """Dedupe on (name, source, chain). First-wins on conflict; append new.
 
     `chain` is part of the key (2026-09-14): OFAC lists GAZA NOW (SDN-47635)
@@ -116,17 +118,21 @@ def merge_records(existing: dict, incoming: dict) -> dict:
     """
     merged = dict(existing)
 
-    merged["labels"] = merge_label_entries(
-        existing.get("labels", []), incoming.get("labels", [])
-    )
+    merged["labels"] = merge_label_entries(existing.get("labels", []), incoming.get("labels", []))
 
     for flag in ("sanctioned", "is_illicit", "is_exchange", "is_ai_agent"):
         merged[flag] = bool(existing.get(flag)) or bool(incoming.get(flag))
 
     scalar_fields = (
-        "entity_name", "category", "jurisdiction", "license_id",
-        "regulator", "license_status", "sanctions_reference",
-        "source_url", "source_date",
+        "entity_name",
+        "category",
+        "jurisdiction",
+        "license_id",
+        "regulator",
+        "license_status",
+        "sanctions_reference",
+        "source_url",
+        "source_date",
     )
     incoming_sanctioned = bool(incoming.get("sanctioned"))
     existing_sanctioned = bool(existing.get("sanctioned"))
@@ -209,33 +215,42 @@ def load_raw_file(path: Path) -> list[dict]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--raw-dir", type=Path, default=DEFAULT_RAW_DIR,
+        "--raw-dir",
+        type=Path,
+        default=DEFAULT_RAW_DIR,
         help="Directory with *.json raw source files",
     )
     parser.add_argument(
-        "--base", type=Path, default=None,
+        "--base",
+        type=Path,
+        default=None,
         help="Existing unified label store to merge onto (omit to start empty)",
     )
     parser.add_argument(
-        "--output", type=Path,
-        default=Path("data") /
-        f"unified_labels_v2_{date.today().isoformat()}.json",
+        "--output",
+        type=Path,
+        default=Path("data") / f"unified_labels_v2_{date.today().isoformat()}.json",
     )
     parser.add_argument(
-        "--skip-validation", action="store_true",
+        "--skip-validation",
+        action="store_true",
         help="Skip Pydantic validation of every output record (fast path)",
     )
     parser.add_argument(
-        "--inputs", nargs="*", default=None,
+        "--inputs",
+        nargs="*",
+        default=None,
         help="Explicit raw file names (relative to --raw-dir). Canonical "
-             "builds MUST pass this: the raw dir also holds non-label files "
-             "(NDJSON FtM dumps, GitHub API listings) that json.load cannot "
-             "merge — a bare glob is not a reproducible input set.",
+        "builds MUST pass this: the raw dir also holds non-label files "
+        "(NDJSON FtM dumps, GitHub API listings) that json.load cannot "
+        "merge — a bare glob is not a reproducible input set.",
     )
     parser.add_argument(
-        "--manifest", type=Path, default=None,
+        "--manifest",
+        type=Path,
+        default=None,
         help="Write a build manifest JSON (base+inputs shas, per-file "
-             "counts, merge summary, output sha) to this path",
+        "counts, merge summary, output sha) to this path",
     )
     args = parser.parse_args()
 
@@ -272,6 +287,11 @@ def main() -> None:
         file_skipped = 0
         file_destroyed = 0
         file_synthetic = 0
+        file_bad_address = 0
+        file_unknown_chain = 0
+        file_unknown_label_chain = 0
+        bad_examples: list[str] = []
+        unknown_chain_examples: list[str] = []
         for rec in recs:
             raw_addr = rec.get("address")
             if not raw_addr:
@@ -282,10 +302,30 @@ def main() -> None:
             # Canonical chain spelling before anything keys on it (xdai → gnosis,
             # eth → ethereum, Avax → avalanche_c): two spellings of one chain were
             # two keys nobody queried together (contract P, 2026-09-14).
-            rec["chain"] = normalize_chain(rec.get("chain"))
+            # Contract S (S7/S11, 2026-09-14): a chain outside the allow-list and an
+            # address that is not a single token are refused LOUDLY — a label keyed under
+            # a misspelt chain is served to nobody, a junk key never matches a query.
+            if not _ADDRESS_TOKEN_RE.fullmatch(str(raw_addr).strip()):
+                file_bad_address += 1
+                if len(bad_examples) < 5:
+                    bad_examples.append(str(raw_addr)[:60])
+                continue
+            rec["chain"] = resolve_bnb(normalize_chain(rec.get("chain")), raw_addr)
+            if not is_canonical_chain(rec["chain"]):
+                file_unknown_chain += 1
+                if len(unknown_chain_examples) < 5:
+                    unknown_chain_examples.append(str(rec.get("chain"))[:40])
+                continue
+            kept_labels = []
             for lab in rec.get("labels") or []:
                 if isinstance(lab, dict) and lab.get("chain") is not None:
-                    lab["chain"] = normalize_chain(lab.get("chain"))
+                    lab["chain"] = resolve_bnb(normalize_chain(lab.get("chain")), raw_addr)
+                    if not is_canonical_chain(lab["chain"]):
+                        file_unknown_label_chain += 1
+                        continue
+                kept_labels.append(lab)
+            if rec.get("labels") is not None:
+                rec["labels"] = kept_labels
             addr = normalize_key(raw_addr, rec.get("chain"))
             if is_case_destroyed(addr, rec.get("chain")):
                 # Ingest case gate: a lowercased base58 address is a wound
@@ -314,6 +354,18 @@ def main() -> None:
                 added += 1
         if file_skipped:
             print(f"    skipped (no 'address' field): {file_skipped}")
+        if file_bad_address:
+            print(
+                f"    SKIPPED LOUDLY (address is not a single token): {file_bad_address} e.g. {bad_examples}"
+            )
+        if file_unknown_chain:
+            print(
+                f"    SKIPPED LOUDLY (chain outside the allow-list): {file_unknown_chain} e.g. {unknown_chain_examples}"
+            )
+        if file_unknown_label_chain:
+            print(
+                f"    labels DROPPED LOUDLY (label chain outside the allow-list): {file_unknown_label_chain}"
+            )
         if file_destroyed:
             print(f"    REFUSED (case-destroyed base58): {file_destroyed}")
         if file_synthetic:
@@ -321,14 +373,19 @@ def main() -> None:
         skipped_no_address += file_skipped
         refused_destroyed += file_destroyed
         refused_synthetic += file_synthetic
-        inputs_meta.append({
-            "name": raw_file.name,
-            "sha256": _sha256(raw_file),
-            "records": len(recs),
-            "skipped_no_address": file_skipped,
-            "refused_case_destroyed": file_destroyed,
-            "refused_synthetic_key": file_synthetic,
-        })
+        inputs_meta.append(
+            {
+                "name": raw_file.name,
+                "sha256": _sha256(raw_file),
+                "records": len(recs),
+                "skipped_no_address": file_skipped,
+                "skipped_bad_address": file_bad_address,
+                "skipped_unknown_chain": file_unknown_chain,
+                "dropped_unknown_label_chain": file_unknown_label_chain,
+                "refused_case_destroyed": file_destroyed,
+                "refused_synthetic_key": file_synthetic,
+            }
+        )
 
     print("\nMerge summary:")
     print(f"  Existing entries:   {len(current) - added}")
@@ -356,15 +413,10 @@ def main() -> None:
         print(f"Validation errors: {errs} (pre-existing + new)")
 
     # Tron-chain subset count for contract PASS signal
-    tron_records = [
-        r for r in current.values()
-        if isinstance(r, dict) and r.get("chain") == "tron"
-    ]
+    tron_records = [r for r in current.values() if isinstance(r, dict) and r.get("chain") == "tron"]
     tron_sanctioned = [r for r in tron_records if r.get("sanctioned")]
     tron_exchange = [r for r in tron_records if r.get("is_exchange")]
-    tron_entities = Counter(
-        r.get("entity_name") for r in tron_records if r.get("entity_name")
-    )
+    tron_entities = Counter(r.get("entity_name") for r in tron_records if r.get("entity_name"))
 
     print("\nTron subset in merged file:")
     print(f"  Total Tron records:   {len(tron_records)}")

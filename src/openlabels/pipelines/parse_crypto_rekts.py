@@ -61,6 +61,14 @@ NETWORK_MAP = {
     "Moonriver": "moonriver",
     "Aurora": "aurora",
 }
+# Contract S (S11): the rekt database spells networks freely ("Avalanche", "avalanche",
+# "ETHEREUM"); the lookup is case- and whitespace-insensitive.
+_NETWORK_MAP_CI = {k.strip().lower(): v for k, v in NETWORK_MAP.items()}
+
+
+def _network_chain(name: object) -> str | None:
+    return _NETWORK_MAP_CI.get(str(name or "").strip().lower())
+
 
 HEX_RE = re.compile(r"\b0x[0-9a-fA-F]{40}\b")
 TRON_B58_RE = re.compile(r"\bT[1-9A-HJ-NP-Za-km-z]{33}\b")
@@ -85,7 +93,8 @@ def extract_addresses_from_text(text: str) -> dict[str, set[str]]:
 
 
 def parse_one(
-    rekt: dict, source_url_base: str = "https://github.com/liqtags/crypto-rekts",
+    rekt: dict,
+    source_url_base: str = "https://github.com/liqtags/crypto-rekts",
 ) -> list[dict]:
     """Emit records from a single rekt JSON file."""
     records = []
@@ -95,7 +104,7 @@ def parse_one(
     for sn in rekt.get("scamNetworks", []) or []:
         net = sn.get("networks") or {}
         name = (net or {}).get("name") or ""
-        chain = NETWORK_MAP.get(name) or NETWORK_MAP.get(name.strip())
+        chain = _network_chain(name)
         if chain:
             declared_chains.add(normalize_chain(chain))
 
@@ -143,9 +152,13 @@ def parse_one(
             addr = a.get("address") or a.get("token_address") or ""
             # Sometimes token_addresses items carry a chain hint
             hint = None
-            net_name = (a.get("network") or {}).get("name") if isinstance(a.get("network"), dict) else a.get("network")
+            net_name = (
+                (a.get("network") or {}).get("name")
+                if isinstance(a.get("network"), dict)
+                else a.get("network")
+            )
             if isinstance(net_name, str):
-                hint = NETWORK_MAP.get(net_name)
+                hint = _network_chain(net_name)
             if addr:
                 addrs_from_fields.add((addr, hint))
         elif isinstance(a, str) and a:
@@ -206,11 +219,13 @@ def parse_one(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input-dir", type=Path,
+        "--input-dir",
+        type=Path,
         default=Path("data/labels_raw/crypto_rekts"),
     )
     parser.add_argument(
-        "--output", type=Path,
+        "--output",
+        type=Path,
         default=Path("data/labels_raw/crypto_rekts_parsed.json"),
     )
     args = parser.parse_args()
@@ -237,11 +252,11 @@ def main() -> None:
             if r["chain"] == "tron":
                 tron_hits += 1
 
-    print(f"\nParsed {len(files) - n_skipped}/{len(files)} files, "
-          f"{n_skipped} failed", flush=True)
+    print(
+        f"\nParsed {len(files) - n_skipped}/{len(files)} files, " f"{n_skipped} failed", flush=True
+    )
     print(f"Emitted {len(all_records)} records", flush=True)
-    print(f"By chain: {sorted(chain_counts.items(), key=lambda x: -x[1])[:15]}",
-          flush=True)
+    print(f"By chain: {sorted(chain_counts.items(), key=lambda x: -x[1])[:15]}", flush=True)
     print(f"Tron hits: {tron_hits}", flush=True)
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
