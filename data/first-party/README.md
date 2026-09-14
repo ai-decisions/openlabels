@@ -16,6 +16,20 @@ The label text states what we hold and nothing more. An interaction is not a fin
 a removed sanctions listing is stated as removed; a name corrected against a sanctions list keeps the
 old text in `context.previously_recorded_as`.
 
+## Confidence
+
+Every tag carries a GraphSense `confidence` level (the tagpack-tool taxonomy), derived from its
+provenance marker. The pack is mixed, so the level sits on each tag rather than in the header:
+
+| provenance | rows | confidence | taxonomy definition |
+|---|---|---|---|
+| `sourced`, an OFAC publication cited | 4 | `authority_data` | attribution tags retrieved from public authorities |
+| `sourced`, first-party read of the ledger (Tornado Cash interactors, the VIRTUAL contract) | 17 | `ledger_immanent` | data extracted directly from ledger data with a reliable extraction procedure |
+| `curated` | 67 | `heuristic` | methods whose reliability is hard to quantify; best effort |
+
+`heuristic` is deliberately the lowest level above `unknown`: a curated row is a lead to verify, and
+its level says so to any consumer that ranks tags by confidence.
+
 ## Sourced sets
 
 ### Tornado Cash interactors

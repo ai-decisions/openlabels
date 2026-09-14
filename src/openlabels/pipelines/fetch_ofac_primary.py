@@ -20,6 +20,14 @@ OUTPUT
                       entity id and the designation programs
 `manifest.json`       counts + sha256 of the source XML and of the output
 
+INPUT
+-----
+By default the two exports are downloaded from OFAC. `--from-dir DIR` parses
+`DIR/sdn_enhanced.xml` + `DIR/cons_enhanced.xml` instead — a pinned snapshot
+(the manifest records its sha256 either way), so a pack can be rebuilt from
+the exact bytes a reviewer checked, and from a machine that cannot reach the
+OFAC download host (the export redirects to an S3 bucket in us-gov-west-1).
+
 The designation programs are carried through deliberately: OFAC's own taxonomy
 (CYBER2 / SDGT / DPRK4 / FTO / ILLICIT-DRUGS-EO14059 …) is the cleanest
 family label available.
@@ -113,6 +121,8 @@ def main() -> int:
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", required=True, type=Path, help="output directory")
     ap.add_argument("--keep-xml", action="store_true", help="retain the downloaded XML")
+    ap.add_argument("--from-dir", type=Path, default=None,
+                    help="parse DIR/sdn_enhanced.xml + DIR/cons_enhanced.xml instead of downloading")
     ap.add_argument("--min-addresses", type=int, default=800,
                     help="HALT if fewer distinct addresses than this (schema-drift gate)")
     a = ap.parse_args()
@@ -121,16 +131,23 @@ def main() -> int:
     rows: list[dict] = []
     src_meta = {}
     for name, url in SOURCES.items():
-        xml = a.out / f"{name}.xml"
-        download(url, xml)
+        if a.from_dir is not None:
+            xml = a.from_dir / f"{name}.xml"
+            if not xml.is_file():
+                raise SystemExit(f"HALT: --from-dir given but {xml} is missing")
+        else:
+            xml = a.out / f"{name}.xml"
+            download(url, xml)
         digest = sha256_of(xml)
         part = parse(xml)
         src_meta[name] = {"url": url, "bytes": xml.stat().st_size,
                           "sha256": digest, "crypto_feature_rows": len(part)}
+        if a.from_dir is not None:
+            src_meta[name]["local_file"] = str(xml)
         print(f"{name:<14} {xml.stat().st_size:>12,} B  sha256 {digest[:16]}…  "
               f"rows {len(part):,}", file=sys.stderr)
         rows += part
-        if not a.keep_xml:
+        if a.from_dir is None and not a.keep_xml:
             xml.unlink()
 
     seen, uniq = set(), []

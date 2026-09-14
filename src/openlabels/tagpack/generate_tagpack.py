@@ -20,6 +20,14 @@ our label types onto the GraphSense concept taxonomy where the mapping is clean;
 unmappable types ride through as `abuse` only when genuinely abusive, else the
 tag carries no concept (allowed by schema).
 
+Confidence and actors: every tag gets a GraphSense confidence level from its
+label source (SOURCE_CONFIDENCE; a source not in the table is emitted as the
+explicit taxonomy floor `unknown`), hoisted to the header when the whole pack
+is one level; an entity that exists in the GraphSense actorpack carries
+`actor` (ACTOR_BY_LABEL). Both were absent from the pack reviewed in
+graphsense/graphsense-tagpacks#53 (2026-09-14) and the local validator below
+now refuses a pack without them or with a Tron address under another currency.
+
 Usage:
     python3 -m openlabels.tagpack.generate_tagpack --labels unified_labels.json \
         --out tagpack.yaml --min-rows 100
@@ -34,7 +42,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from openlabels.tron_address import hex_to_base58check
+from openlabels.tron_address import hex_to_base58check, is_base58check
 
 # Authentic per-source provenance (from the harvest code, see module docstring).
 SOURCE_URI: dict[str, str] = {
@@ -58,6 +66,35 @@ REPO_URI = "https://github.com/ai-decisions/openlabels"
 SOURCE_URI["known_exchanges"] = REPO_URI
 SOURCE_URI["known_mixers"] = REPO_URI
 SOURCE_URI["ethereum_agents_curated"] = REPO_URI
+
+# GraphSense confidence taxonomy (tagpack-tool src/tagpack/db/confidence.csv), per
+# label source. OFAC is a public authority → `authority_data`, the level the
+# repository's own OFAC-derived packs carry (hydra.yaml, blender_io.yaml,
+# lazarus.yaml). A source not listed here is emitted as the taxonomy floor
+# `unknown` EXPLICITLY — the consumer would otherwise assign it silently.
+SOURCE_CONFIDENCE: dict[str, str] = {
+    "ofac": "authority_data",
+    "ofac_sdn": "authority_data",
+    "ofac_press_release": "authority_data",
+}
+CONFIDENCE_FLOOR = "unknown"
+CONFIDENCE_LEVELS = frozenset({
+    "override", "ownership", "ledger_immanent", "manual_transaction", "service_api",
+    "forensic_investigation", "authority_data", "trusted_provider", "service_data",
+    "forensic", "untrusted_transaction", "web_crawl", "heuristic", "unknown",
+})
+
+# OFAC entity name (= the tag label) → GraphSense actor id. Only ids that exist in
+# graphsense-tagpacks actors/graphsense.actorpack.yaml (verified 2026-09-14); an
+# entity without an actor there carries no `actor` field rather than a guess.
+ACTOR_BY_LABEL: dict[str, str] = {
+    "HYDRA MARKET": "hydramarket",
+    "BLENDER.IO": "blenderio",
+    "GARANTEX EUROPE OU": "garantex",
+    "CHATEX": "chatex",
+    "LAZARUS GROUP": "lazarusgroup",
+    "SINBAD": "sinbadio",
+}
 
 # Sources whose datasets are NOT redistributable (licence, not quality):
 # OpenSanctions = CC-BY-NC 4.0; Dune Spellbook = BSL 1.1.
@@ -141,12 +178,24 @@ def build(
                 tag["category"] = cat
             if chain not in ("bitcoin", "ethereum", "tron", "litecoin"):
                 tag["context"] = json.dumps({"evm_chain": chain})
+            tag["confidence"] = SOURCE_CONFIDENCE.get(src, CONFIDENCE_FLOOR)
+            actor = ACTOR_BY_LABEL.get(tag["label"])
+            if actor:
+                tag["actor"] = actor
             tags.append(tag)
 
     if len(tags) < min_rows:
         raise SystemExit(f"FAIL: only {len(tags)} tags produced, floor is {min_rows}")
 
-    doc = {
+    # One confidence level across the pack → header field, inherited by every
+    # tag (the form the repository's own OFAC packs use); mixed → stays per tag.
+    levels = {t["confidence"] for t in tags}
+    header_confidence = next(iter(levels)) if len(levels) == 1 else None
+    if header_confidence is not None:
+        for t in tags:
+            del t["confidence"]
+
+    doc: dict = {
         "title": title or "AI DECISIONS unified public-label TagPack",
         "creator": "AI DECISIONS (aidecisions.ai)",
         "description": (
@@ -155,8 +204,10 @@ def build(
             "harvested from."
         ),
         "lastmod": lastmod or date.today().isoformat(),
-        "tags": tags,
     }
+    if header_confidence is not None:
+        doc["confidence"] = header_confidence
+    doc["tags"] = tags
 
     # Emit YAML by hand-serialisation via json→yaml-safe scalars to avoid a hard
     # pyyaml dependency ordering issue on the box; pyyaml is used for -m validate.
@@ -169,6 +220,8 @@ def build(
         "tags": len(tags),
         "addresses": len({t["address"] for t in tags}),
         "currencies": sorted({t["currency"] for t in tags}),
+        "confidence": header_confidence or "per-tag",
+        "actors": sum(1 for t in tags if "actor" in t),
         "skipped_chains": skipped_chain,
         "skipped_unsourced": skipped_unsourced,
         "skipped_licence_excluded": skipped_licence,
@@ -182,8 +235,13 @@ def validate(path: Path) -> bool:
 
     Mirrors the mandatory-field rules of the GraphSense tagpack schema
     (title, creator, tags[]; per-tag address+currency+label+source, lastmod
-    tag-or-header). Run the official `tagpack-tool validate` before any
-    external submission — this local check is a pre-flight, not a substitute.
+    tag-or-header) and refuses the three defects the GraphSense maintainers
+    found in graphsense-tagpacks#53 (2026-09-14): no confidence level (tag or
+    header) — the official tool only WARNS and ingests as `unknown`; a
+    confidence outside the taxonomy; a Tron base58check address under any
+    currency but TRX, or a TRX tag in 0x-hex — dead tags either way. Run the
+    official `tagpack-tool tagpack validate` before any external submission
+    and READ ITS WARNINGS — this local check is a pre-flight, not a substitute.
     """
     import yaml
 
@@ -198,11 +256,25 @@ def validate(path: Path) -> bool:
     tags = doc.get("tags", [])
     if not isinstance(tags, list) or not tags:
         errors.append("tags must be a non-empty list")
+    header_conf = doc.get("confidence")
+    if header_conf is not None and header_conf not in CONFIDENCE_LEVELS:
+        errors.append(f"header confidence {header_conf!r} not in the GraphSense taxonomy")
     for i, t in enumerate(tags):
         for field in ("address", "currency", "label", "source"):
             if not str(t.get(field, "") or "").strip():
                 errors.append(f"tag[{i}] missing/blank {field}")
                 break
+        conf = t.get("confidence", header_conf)
+        if conf is None:
+            errors.append(f"tag[{i}] no confidence (tag or header) — ingested as 'unknown'")
+        elif conf not in CONFIDENCE_LEVELS:
+            errors.append(f"tag[{i}] confidence {conf!r} not in the GraphSense taxonomy")
+        addr = str(t.get("address", "") or "")
+        cur = t.get("currency")
+        if is_base58check(addr) and cur != "TRX":
+            errors.append(f"tag[{i}] Tron base58check address under currency {cur!r} — dead tag")
+        elif cur == "TRX" and addr.startswith("0x"):
+            errors.append(f"tag[{i}] TRX address in 0x-hex — dead tag, needs base58check")
         if len(errors) > 20:
             break
     if errors:

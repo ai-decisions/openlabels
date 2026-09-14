@@ -82,6 +82,22 @@ def base58check_to_hex(t_addr: str) -> str:
     return "0x" + payload[1:].hex()
 
 
+def is_base58check(addr: object) -> bool:
+    """True only for a checksum-valid Tron mainnet base58check T-address.
+
+    Boolean form of `base58check_to_hex` for shape checks that must not
+    raise — e.g. deciding whether an address filed under another ticker
+    (OFAC lists SDN-45404's TUCsTq7… as "XBT") is in fact Tron.
+    """
+    if not isinstance(addr, str) or len(addr) != 34 or addr[0] != "T":
+        return False
+    try:
+        base58check_to_hex(addr)
+    except InvalidTronAddress:
+        return False
+    return True
+
+
 def hex_to_base58check(hex_addr: str) -> str:
     """Convert 0x-prefixed 40-hex Tron address back to base58check T-format.
 
