@@ -18,11 +18,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import html as htmlmod
 import json
 import re
 import subprocess
 import time
 from pathlib import Path
+
+from openlabels.ofac_attributed import _infer_chain
 
 HEX_RE = re.compile(r"\b0x[0-9a-fA-F]{40}\b")
 TRON_B58_RE = re.compile(r"\bT[1-9A-HJ-NP-Za-km-z]{33}\b")
@@ -32,6 +35,9 @@ LTC_RE = re.compile(r"\b(ltc1[02-9ac-hj-np-z]{38,58}|[LM][1-9A-HJ-NP-Za-km-z]{25
 XMR_RE = re.compile(r"\b[48][1-9A-HJ-NP-Za-km-z]{94,105}\b")
 
 ACTION_LINK_RE = re.compile(r'href="(/recent-actions/[0-9a-zA-Z_\-\.]+)"')
+# OFAC prints every listed address with its ticker: "Digital Currency Address - ETH 0x…";
+# "alt. Digital Currency Address - ARB 0x…" repeats the same address per chain.
+TICKER_ADDR_RE = re.compile(r"Digital Currency Address\s*-\s*([A-Z]{2,8})\s+([A-Za-z0-9]{20,90})")
 
 
 def extract_action_links(index_dir: Path) -> list[str]:
@@ -135,6 +141,33 @@ def extract_addresses_from_html(html: str) -> dict[str, set[str]]:
     return out
 
 
+def _norm_addr(addr: str) -> str:
+    return addr.lower() if addr.startswith("0x") else addr
+
+
+def extract_addresses_with_evidence(html: str) -> dict[str, set[tuple[str, str]]]:
+    """{address: {(chain, evidence)}} — chain from the ticker OFAC prints next to the
+    address ("ticker", via the shape-first inference shared with the SDN parser; one
+    address listed under ETH, ARB and BSC yields three chains), else from the address
+    format alone ("shape", the pre-2026-09-14 behaviour, kept only for addresses OFAC
+    mentions without a ticker). Contract P: every 0x used to be "ethereum" whatever
+    OFAC wrote — SIM Hyon Sop's 0x4f47bc… lost its ARB and BSC listings."""
+    text = htmlmod.unescape(html)
+    out: dict[str, set[tuple[str, str]]] = {}
+    for m in TICKER_ADDR_RE.finditer(text):
+        ticker, addr = m.group(1), m.group(2)
+        chain = _infer_chain(ticker, addr)
+        if chain == "unknown":
+            continue  # a ticker/shape pair the inference does not know — no guess
+        out.setdefault(_norm_addr(addr), set()).add((chain, "ticker"))
+    for chain, addrs in extract_addresses_from_html(html).items():
+        for addr in addrs:
+            key = _norm_addr(addr)
+            if key not in out:
+                out[key] = {(chain, "shape")}
+    return out
+
+
 def extract_entity_and_program(html: str) -> tuple[str, list[str], str]:
     """Get primary entity name, OFAC program tags, publication date."""
     # <h1> usually has action title
@@ -210,16 +243,16 @@ def main() -> None:
             continue
         n_fetched += 1
         title, programs, date = extract_entity_and_program(html)
-        addrs_by_chain = extract_addresses_from_html(html)
-        if not addrs_by_chain:
+        addrs_with_evidence = extract_addresses_with_evidence(html)
+        if not addrs_with_evidence:
             continue
         source_url = f"https://ofac.treasury.gov{link}"
         sanctions_ref = "; ".join(["OFAC"] + programs) if programs else "OFAC"
 
-        for chain, addrs in addrs_by_chain.items():
-            for addr in addrs:
+        for addr, chains in sorted(addrs_with_evidence.items()):
+            for chain, evidence in sorted(chains):
                 rec = {
-                    "address": addr.lower() if addr.startswith("0x") else addr,
+                    "address": addr,
                     "chain": chain,
                     "labels": [
                         {
@@ -227,6 +260,7 @@ def main() -> None:
                             "type": "sanctioned",
                             "source": "ofac_press_release",
                             "chain": chain,
+                            "chain_evidence": evidence,
                         }
                     ],
                     "is_illicit": True,

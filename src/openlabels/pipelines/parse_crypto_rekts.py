@@ -19,6 +19,8 @@ import json
 import re
 from pathlib import Path
 
+from openlabels.chains import EVM_CHAINS, normalize_chain
+
 # Chain name normalisation (crypto-rekts uses varied spellings)
 NETWORK_MAP = {
     "Binance": "bsc",
@@ -31,8 +33,9 @@ NETWORK_MAP = {
     "Polygon": "polygon",
     "Polygon (Matic)": "polygon",
     "Matic": "polygon",
-    "Avalanche": "avalanche",
-    "AVAX": "avalanche",
+    "Avalanche": "avalanche_c",
+    "AVAX": "avalanche_c",
+    "Avax": "avalanche_c",
     "Arbitrum": "arbitrum",
     "Optimism": "optimism",
     "Base": "base",
@@ -51,7 +54,7 @@ NETWORK_MAP = {
     "Heco": "heco",
     "OKEx": "okex",
     "OKC": "okex",
-    "xDai": "xdai",
+    "xDai": "gnosis",
     "Gnosis": "gnosis",
     "Celo": "celo",
     "Moonbeam": "moonbeam",
@@ -92,9 +95,9 @@ def parse_one(
     for sn in rekt.get("scamNetworks", []) or []:
         net = sn.get("networks") or {}
         name = (net or {}).get("name") or ""
-        chain = NETWORK_MAP.get(name)
+        chain = NETWORK_MAP.get(name) or NETWORK_MAP.get(name.strip())
         if chain:
-            declared_chains.add(chain)
+            declared_chains.add(normalize_chain(chain))
 
     project_name = rekt.get("project_name") or rekt.get("title") or ""
     scam_type = (rekt.get("scam_type") or {}).get("type") or "scam"
@@ -148,29 +151,30 @@ def parse_one(
         elif isinstance(a, str) and a:
             addrs_from_fields.add((a, None))
 
-    for addr, hint_chain in addrs_from_fields:
+    # Contract P (2026-09-14): a chain is a claim of the source, never a default.
+    # An EVM-shaped address gets one record per EVM chain the rekt declares; when
+    # the rekt declares none (Other / Centralized / non-EVM only) the chain is
+    # "evm" — an EVM address of unstated chain — not "ethereum" (Bald was a Base
+    # rug filed as "Other"; Blizzard's Avalanche addresses were "ethereum").
+    declared_evm = sorted(c for c in declared_chains if c in EVM_CHAINS and c != "evm")
+    for addr, hint_chain in sorted(addrs_from_fields, key=lambda x: (x[0], x[1] or "")):
         if not addr:
             continue
-        # Determine chain: use declared from scamNetworks, else infer from format
-        if hint_chain:
-            chain = hint_chain
-        elif addr.startswith("T") and len(addr) == 34:
-            chain = "tron"
+        if addr.startswith("T") and len(addr) == 34:
+            records.append(make_record(addr, "tron"))
         elif addr.startswith("0x") and len(addr) == 42:
-            # EVM — use declared chain if unique, else 'ethereum' as default
-            if len(declared_chains) == 1:
-                chain = next(iter(declared_chains))
-            elif "ethereum" in declared_chains:
-                chain = "ethereum"
-            elif declared_chains:
-                chain = sorted(declared_chains)[0]
+            if hint_chain and hint_chain in EVM_CHAINS:
+                chains = [hint_chain]
+            elif declared_evm:
+                chains = declared_evm
             else:
-                chain = "ethereum"  # default EVM
+                chains = ["evm"]
+            for chain in chains:
+                records.append(make_record(addr, chain))
         elif addr.startswith(("1", "3", "bc1")):
-            chain = "bitcoin"
+            records.append(make_record(addr, "bitcoin"))
         else:
             continue
-        records.append(make_record(addr, chain))
 
     # Additionally: mine HTML description for addresses
     desc = rekt.get("description") or ""
@@ -181,14 +185,11 @@ def parse_one(
         records.append(make_record(addr, "tron"))
     for addr in mined.get("bitcoin", set()):
         records.append(make_record(addr, "bitcoin"))
-    # EVM addresses from description: use declared chain if single, else skip
-    # (to avoid wrong-chain mis-attribution)
-    for addr in mined.get("evm_unknown", set()):
-        if len(declared_chains) == 1:
-            chain = next(iter(declared_chains))
+    # EVM addresses mined from prose: one record per declared EVM chain; none
+    # declared → skipped (prose is weaker evidence than the address fields).
+    for addr in sorted(mined.get("evm_unknown", set())):
+        for chain in declared_evm:
             records.append(make_record(addr, chain))
-        elif "ethereum" in declared_chains:
-            records.append(make_record(addr, "ethereum"))
 
     # Dedup within this rekt
     seen = set()

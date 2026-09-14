@@ -26,6 +26,7 @@ from pathlib import Path
 from typing import get_args
 
 from openlabels.address_case import canonical_case, is_case_destroyed
+from openlabels.chains import normalize_chain
 from openlabels.tron_address import InvalidTronAddress, base58check_to_hex
 from openlabels.unified import EntityCategory, LicenseStatus, UnifiedLabelRecord
 
@@ -278,6 +279,13 @@ def main() -> None:
                 # API file listing). Skipped LOUDLY, never silently dropped.
                 file_skipped += 1
                 continue
+            # Canonical chain spelling before anything keys on it (xdai → gnosis,
+            # eth → ethereum, Avax → avalanche_c): two spellings of one chain were
+            # two keys nobody queried together (contract P, 2026-09-14).
+            rec["chain"] = normalize_chain(rec.get("chain"))
+            for lab in rec.get("labels") or []:
+                if isinstance(lab, dict) and lab.get("chain") is not None:
+                    lab["chain"] = normalize_chain(lab.get("chain"))
             addr = normalize_key(raw_addr, rec.get("chain"))
             if is_case_destroyed(addr, rec.get("chain")):
                 # Ingest case gate: a lowercased base58 address is a wound

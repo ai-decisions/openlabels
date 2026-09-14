@@ -22,7 +22,7 @@ Chain inference rule:
       0x41 mainnet prefix) is tron WHATEVER ticker it is filed under. OFAC
       files SDN-45404's TUCsTq7… under "XBT"; carried as Bitcoin the tag
       resolved on no chain (GraphSense review of our pack, 2026-09-14).
-    - USDT (runs on ETH, Tron, Omni and others) is disambiguated by shape:
+    - Token tickers USDT/USDC (run on ETH, Tron, Omni and others) are disambiguated by shape:
       ^0x[0-9a-fA-F]{40}$ → ethereum, Tron shape → tron, a checksum-valid
       Bitcoin P2PKH/P2SH address → bitcoin (Omni layer; OFAC lists SUEX /
       Chatex / Garantex addresses that way and nowhere else), else → unknown.
@@ -71,16 +71,27 @@ _TICKER_TO_CHAIN: dict[str, str] = {
     "XBT": "bitcoin",
     "BTC": "bitcoin",
     "BCH": "bitcoin_cash",
+    "BSV": "bitcoin_sv",
+    "BTG": "bitcoin_gold",
     "ETH": "ethereum",
+    "ETC": "ethereum_classic",
     "TRX": "tron",
     "XMR": "monero",
     "LTC": "litecoin",
+    "DOGE": "dogecoin",
     "XRP": "ripple",
     "ZEC": "zcash",
     "DASH": "dash",
+    "XVG": "verge",
+    "SOL": "solana",
+    "BNB": "bnb",
     "ARB": "arbitrum",
     "BASE": "base",
+    "BSC": "bsc",
 }
+# Token tickers say nothing about the chain (USDT runs on Ethereum, Tron, Omni;
+# USDC on Ethereum, Tron, Solana): the address format decides.
+_TOKEN_TICKERS = frozenset({"USDT", "USDC"})
 
 
 def _infer_chain(ticker: str, address: str) -> str:
@@ -97,7 +108,7 @@ def _infer_chain(ticker: str, address: str) -> str:
     """
     if is_tron_base58check(address):
         return "tron"
-    if ticker == "USDT":
+    if ticker in _TOKEN_TICKERS:
         if _EVM_ADDR_RE.match(address):
             return "ethereum"
         if _TRON_ADDR_RE.match(address):
