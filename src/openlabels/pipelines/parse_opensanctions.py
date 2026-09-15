@@ -42,51 +42,21 @@ import sys
 from pathlib import Path
 
 from openlabels.address_case import canonical_case
+from openlabels.ofac_attributed import _shape_chain
 
 
 # Chain inference from address format (base58 Tron is checked before hex
 # fallback because both can start with '0x' in the raw feed):
 def infer_chain(addr: str) -> str | None:
-    """Return chain name by address format heuristics."""
+    """Chain by address form — the inference shared with the OFAC parsers (contract R,
+    2026-09-15): base58check for bitcoin/litecoin, then the zcash / dash / bitcoin_gold /
+    dogecoin forms, and only then the solana catch-all. Nine OFAC-listed zcash / dash /
+    bitcoin_gold addresses used to land under `solana` here (security audit MEDIUM-1)."""
     a = addr.strip()
     if not a:
         return None
-    # Tron base58check: 'T' + 33 chars from base58 alphabet
-    if len(a) == 34 and a[0] == "T" and all(
-        c in "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-        for c in a[1:]
-    ):
-        return "tron"
-    # Hex EVM: 0x + 40 hex
-    if len(a) == 42 and a.lower().startswith("0x") and all(
-        c in "0123456789abcdefABCDEF" for c in a[2:]
-    ):
-        return "ethereum"  # default EVM; may be Tron/BSC/Base/etc.
-    # Bitcoin legacy (P2PKH/P2SH)
-    if 26 <= len(a) <= 35 and a[0] in "13" and all(
-        c in "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-        for c in a
-    ):
-        return "bitcoin"
-    # Bitcoin bech32
-    if a.lower().startswith("bc1"):
-        return "bitcoin"
-    # Litecoin (ltc1 / L / M / 3)
-    if a.lower().startswith("ltc1") or (a[0] in "LM" and 26 <= len(a) <= 35):
-        return "litecoin"
-    # XRP
-    if a[0] == "r" and 25 <= len(a) <= 35:
-        return "xrp"
-    # Monero (4 / 8 prefix, 95 chars)
-    if len(a) in (95, 106) and a[0] in "48":
-        return "monero"
-    # Solana (base58, 32-44 chars, no prefix constraint)
-    if 32 <= len(a) <= 44 and all(
-        c in "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-        for c in a
-    ):
-        return "solana"
-    return None
+    chain = _shape_chain(a)
+    return None if chain == "unknown" else chain
 
 
 def first_or_none(seq):
@@ -125,8 +95,94 @@ def extract_holder(ent: dict, all_entities: dict) -> str | None:
     return None
 
 
+# --- label type from the SOURCE's own taxonomy (contract R, gate 5, 2026-09-15) ---------
+# OpenSanctions carries CryptoWallet entities from very different datasets. Only the
+# ones OpenSanctions itself files under the `sanction` topic (or a sanctions-list
+# dataset) are designations; the rest are illicit-activity datasets — ransomware
+# payment addresses (ransomwhere, 11,186 rows on 2026-09-14), Israeli NBCTF terror-
+# financing seizure orders (il_mod_crypto, 578), FBI Lazarus theft notices (33). Typing
+# all of them `sanctioned` told a compliance reader «designated by a sanctions authority»
+# where the truth was «ransomware payment address».
+SANCTION_TOPICS: frozenset[str] = frozenset({"sanction", "sanction.linked", "sanction.counter"})
+# dataset-name fragments that are sanctions lists even when a row lacks the topic
+SANCTION_DATASET_KEYS: tuple[str, ...] = (
+    "ofac",
+    "hmt",
+    "eu_fsf",
+    "un_sc",
+    "ch_seco",
+    "ca_sema",
+    "sanctions",
+    "jp_mof",
+)
+# datasets whose rows are illicit activity of one known kind
+DATASET_SUBTYPE: dict[str, str] = {
+    "ransomwhere": "ransomware",
+    "il_mod_crypto": "terror_financing",
+    "us_fbi_lazarus_crypto": "hack",
+}
+# fallback: the OpenSanctions topic names the kind of illicit activity
+TOPIC_SUBTYPE: dict[str, str] = {
+    "crime.theft": "theft",
+    "crime.terror": "terror_financing",
+    "crime.fin": "financial_crime",
+    "crime.cyber": "cybercrime",
+    "crime.fraud": "fraud",
+    "crime.traffick": "trafficking",
+    "crime.war": "war_crimes",
+    "crime": "crime",
+    "wanted": "wanted",
+    "debarment": "debarment",
+    "export.control": "export_control",
+}
+# every other dataset fragment that used to mark a row illicit (kept: a row from an
+# FBI or Interpol dataset without a mapped topic is still illicit, typed by what we know)
+ILLICIT_DATASET_KEYS: tuple[str, ...] = ("il_mod", "fbi_", "interpol")
+
+
+def classify_wallet(topics: list[str], datasets: list[str]) -> tuple[str, str | None]:
+    """(label type, subtype) for a CryptoWallet from ITS source's topics and datasets:
+    `sanctioned` only for the `sanction` topic or a sanctions-list dataset; otherwise
+    `illicit` with the kind of activity the dataset/topic names; `vasp` (the historical
+    non-illicit type here) when nothing marks the wallet illicit."""
+    topics = [str(t) for t in (topics or [])]
+    datasets = [str(d) for d in (datasets or [])]
+    if any(t in SANCTION_TOPICS for t in topics):
+        return "sanctioned", None
+    if any(k in d.lower() for d in datasets for k in SANCTION_DATASET_KEYS):
+        return "sanctioned", None
+    for d in datasets:
+        if d in DATASET_SUBTYPE:
+            return "illicit", DATASET_SUBTYPE[d]
+    for t in topics:
+        if t in TOPIC_SUBTYPE:
+            return "illicit", TOPIC_SUBTYPE[t]
+    if any(k in d.lower() for d in datasets for k in ILLICIT_DATASET_KEYS):
+        return "illicit", "unspecified"
+    return "vasp", None
+
+
+def wallet_label(name: str, chain: str, topics: list[str], datasets: list[str]) -> dict:
+    """The opensanctions label for one wallet, typed by `classify_wallet`, carrying the
+    source's datasets and topics in `context` (a consumer can tell an OFAC copy —
+    `us_ofac_sdn` — from an EU or UN listing without re-reading the source)."""
+    ltype, subtype = classify_wallet(topics, datasets)
+    lab: dict = {
+        "name": name,
+        "type": ltype,
+        "source": "opensanctions",
+        "chain": chain,
+        "context": {"datasets": list(datasets or []), "topics": list(topics or [])},
+    }
+    if subtype:
+        lab["subtype"] = subtype
+    return lab
+
+
 def process_crypto_wallet(
-    ent: dict, all_entities: dict, source_url_base: str,
+    ent: dict,
+    all_entities: dict,
+    source_url_base: str,
 ) -> list[dict]:
     """Emit one record per publicKey of this CryptoWallet entity."""
     props = ent.get("properties", {})
@@ -141,19 +197,9 @@ def process_crypto_wallet(
     first_seen = ent.get("first_seen", "") or props.get("createdAt", [""])[0]
     last_change = ent.get("last_change", "") or ""
 
-    # Infer illicit from topics / datasets
-    illicit_topics = {
-        "sanction", "sanction.linked", "crime", "crime.fin", "crime.war",
-        "crime.terror", "crime.traffick", "crime.theft", "crime.fraud",
-        "crime.cyber", "debarment", "export.control", "wanted",
-    }
-    is_illicit = any(t in illicit_topics for t in topics) or any(
-        d for d in datasets if any(
-            k in d.lower() for k in
-            ("ofac", "hmt", "eu_fsf", "un_sc", "il_mod", "ch_seco",
-             "ca_sema", "sanctions", "fbi_", "interpol")
-        )
-    )
+    ltype, _subtype = classify_wallet(topics, datasets)
+    sanctioned = ltype == "sanctioned"
+    is_illicit = ltype in ("sanctioned", "illicit")
 
     records = []
     for pk in public_keys:
@@ -166,21 +212,16 @@ def process_crypto_wallet(
             # thousands of sanctioned base58 rows before this policy existed.
             "address": canonical_case(pk),
             "chain": chain,
-            "labels": [
-                {
-                    "name": wallet_name or holder or "unknown",
-                    "type": "sanctioned" if is_illicit else "vasp",
-                    "source": "opensanctions",
-                    "chain": chain,
-                }
-            ],
+            "labels": [wallet_label(wallet_name or holder or "unknown", chain, topics, datasets)],
             "is_illicit": is_illicit,
             "is_exchange": False,
             "is_ai_agent": False,
             "entity_name": holder or wallet_name,
-            "category": "sanctioned" if is_illicit else "unknown",
-            "sanctioned": is_illicit,
-            "sanctions_reference": "; ".join(topics + datasets[:3]) if is_illicit else None,
+            # `sanctioned` is a category only for a designation; an illicit non-sanction
+            # row leaves the entity type to the consumer (its label carries the kind)
+            "category": "sanctioned" if sanctioned else (None if is_illicit else "unknown"),
+            "sanctioned": sanctioned,
+            "sanctions_reference": "; ".join(topics + datasets[:3]) if sanctioned else None,
             "source_url": f"{source_url_base}/entities/{ent['id']}/",
             "source_date": last_change or first_seen,
             "_os_entity_id": ent["id"],
@@ -194,25 +235,27 @@ def process_crypto_wallet(
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input", type=Path, required=True,
+        "--input",
+        type=Path,
+        required=True,
         help="OpenSanctions targets.nested.json (JSON lines)",
     )
     parser.add_argument(
-        "--output", type=Path,
+        "--output",
+        type=Path,
         default=Path("data/labels_raw/opensanctions_parsed.json"),
     )
     parser.add_argument(
-        "--source-url-base", default="https://www.opensanctions.org",
+        "--source-url-base",
+        default="https://www.opensanctions.org",
     )
     args = parser.parse_args()
 
     if not args.input.exists():
-        print(f"ERROR: {args.input} not found. Run download first.",
-              file=sys.stderr)
+        print(f"ERROR: {args.input} not found. Run download first.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"Loading {args.input} ({args.input.stat().st_size / 1e9:.2f} GB)...",
-          flush=True)
+    print(f"Loading {args.input} ({args.input.stat().st_size / 1e9:.2f} GB)...", flush=True)
     # OpenSanctions targets.nested.json is a JSON LINES file (one entity per
     # line), NOT a single JSON array. Parse line by line.
     wallets = []
@@ -241,11 +284,13 @@ def main() -> None:
                 wallets.append(ent)
                 n_wallets += 1
             if n_lines % 100_000 == 0:
-                print(f"  scanned {n_lines:,} lines, {n_wallets} wallets",
-                      flush=True)
+                print(f"  scanned {n_lines:,} lines, {n_wallets} wallets", flush=True)
 
-    print(f"\nScanned {n_lines:,} lines, found {n_wallets} CryptoWallet entities, "
-          f"{len(all_entities):,} entities total", flush=True)
+    print(
+        f"\nScanned {n_lines:,} lines, found {n_wallets} CryptoWallet entities, "
+        f"{len(all_entities):,} entities total",
+        flush=True,
+    )
 
     # Second pass: extract records
     records = []

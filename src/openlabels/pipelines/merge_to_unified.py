@@ -80,12 +80,21 @@ def load_base(base_path: Path | None) -> dict[str, dict]:
 _ADDRESS_TOKEN_RE = re.compile(r"[A-Za-z0-9:]{20,120}")
 
 
+def _label_context(lab: dict) -> dict:
+    ctx = lab.get("context")
+    return ctx if isinstance(ctx, dict) else {}
+
+
 def _label_key(lab: dict) -> tuple:
-    return (lab.get("name"), lab.get("source"), lab.get("chain"))
+    # Contract R (2026-09-15): a label that names its page (`context.source_url`) is a
+    # fact about THAT page — two OFAC actions on one address with the same title are two
+    # labels (a designation and, years later, its removal). Labels without context keep
+    # the (name, source, chain) key unchanged.
+    return (lab.get("name"), lab.get("source"), lab.get("chain"), _label_context(lab).get("source_url"))
 
 
 def merge_label_entries(existing: list[dict], incoming: list[dict]) -> list[dict]:
-    """Dedupe on (name, source, chain). First-wins on conflict; append new.
+    """Dedupe on (name, source, chain, context.source_url). First-wins on conflict; append new.
 
     `chain` is part of the key (2026-09-14): OFAC lists GAZA NOW (SDN-47635)
     with one 20-byte payload as an ETH address and as its Tron encoding; both
@@ -101,6 +110,111 @@ def merge_label_entries(existing: list[dict], incoming: list[dict]) -> list[dict
             out.append(lab)
             seen.add(key)
     return out
+
+
+# --- record standing from its labels (contract R / Q2, 2026-09-15) -----------------------
+PRESS_RELEASE_SOURCE = "ofac_press_release"
+_PR_ACTION_PRIORITY = {"designation": 2, "change": 1, "removal": 0}
+_ISO_DAY_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
+# label types that assert illicit activity on their own (the two-axis model: `mixer`,
+# `exchange`, `licit`, `other`, `ai_agent` are entity types, not accusations)
+ILLICIT_LABEL_TYPES: frozenset[str] = frozenset(
+    {
+        "illicit",
+        "sanctioned",
+        "rugpull",
+        "honeypot",
+        "phishing",
+        "scam",
+        "hack",
+        "exploit",
+        "flash loan attack",
+        "access control",
+        "reentrancy",
+        "oracle issue",
+    }
+)
+# sources whose every label records an illicit incident whatever its type string says
+# (crypto_rekts files exploits under `other`)
+ILLICIT_ASSERTING_SOURCES: frozenset[str] = frozenset({"crypto_rekts"})
+
+
+def label_claims_illicit(lab: dict) -> bool:
+    ltype = str(lab.get("type") or "").strip().lower()
+    return ltype in ILLICIT_LABEL_TYPES or str(lab.get("source") or "") in ILLICIT_ASSERTING_SOURCES
+
+
+def press_release_status(labels: list[dict]) -> str | None:
+    """`listed` | `removed` | None from the DATED press-release labels of a record: the
+    latest `context.action_date` decides; on one day designation > change > removal
+    (2022-11-08: Tornado Cash deleted and re-designated the same day stays listed).
+    Labels without `context` (pre-v7 rows, no page in the cache) do not vote."""
+    dated: list[tuple[str, str]] = []
+    for lab in labels:
+        if lab.get("source") != PRESS_RELEASE_SOURCE:
+            continue
+        ctx = _label_context(lab)
+        action, action_date = ctx.get("action"), ctx.get("action_date")
+        # dates compare as strings, so only ISO YYYY-MM-DD may vote (audit 2026-09-15 LOW-1)
+        if (
+            action in _PR_ACTION_PRIORITY
+            and isinstance(action_date, str)
+            and _ISO_DAY_RE.fullmatch(action_date)
+        ):
+            dated.append((action_date, action))
+    if not dated:
+        return None
+    latest = max(d for d, _ in dated)
+    net = max((a for d, a in dated if d == latest), key=lambda a: _PR_ACTION_PRIORITY[a])
+    return "removed" if net == "removal" else "listed"
+
+
+def reconcile_press_release_status(rec: dict) -> bool:
+    """Record-level `sanctioned` / `is_illicit` / `category` from the record's labels.
+    Returns True when the record changed.
+
+    merge_records ORs `sanctioned` (True dominates), which is right for two sources
+    that both list an address and wrong for one source that lists it and later delists
+    it: 91 store addresses whose LAST OFAC action was a deletion stayed `sanctioned`
+    (measured 2026-09-14). A sanctioned-typed label from ANOTHER source keeps the
+    record sanctioned whatever the press releases say.
+    """
+    labels = [lab for lab in (rec.get("labels") or []) if isinstance(lab, dict)]
+    status = press_release_status(labels)
+    if status is None:
+        return False
+    other_sanctioned = any(
+        str(lab.get("type") or "").strip().lower() == "sanctioned"
+        and lab.get("source") != PRESS_RELEASE_SOURCE
+        for lab in labels
+    )
+    changed = False
+    if status == "listed" or other_sanctioned:
+        if not rec.get("sanctioned"):
+            rec["sanctioned"] = True
+            changed = True
+        if not rec.get("is_illicit"):
+            rec["is_illicit"] = True
+            changed = True
+        if rec.get("category") in (None, "unknown"):
+            rec["category"] = "sanctioned"
+            changed = True
+        return changed
+    # removed, and no other source designates it
+    if rec.get("sanctioned"):
+        rec["sanctioned"] = False
+        changed = True
+    if rec.get("category") == "sanctioned":
+        rec["category"] = None
+        changed = True
+    # the press releases have spoken as a whole (removed); only OTHER sources' labels vote
+    illicit = any(
+        label_claims_illicit(lab) for lab in labels if lab.get("source") != PRESS_RELEASE_SOURCE
+    )
+    if bool(rec.get("is_illicit")) != illicit:
+        rec["is_illicit"] = illicit
+        changed = True
+    return changed
 
 
 def merge_records(existing: dict, incoming: dict) -> dict:
@@ -387,8 +501,15 @@ def main() -> None:
             }
         )
 
+    # Contract R (Q2): a record's standing follows its dated press-release labels — a
+    # later OFAC removal ends a listing that merge_records' OR would keep forever.
+    reconciled = sum(
+        1 for rec in current.values() if isinstance(rec, dict) and reconcile_press_release_status(rec)
+    )
+
     print("\nMerge summary:")
     print(f"  Existing entries:   {len(current) - added}")
+    print(f"  PR status reconciled: {reconciled}")
     print(f"  Newly added:        {added}")
     print(f"  Collision-merged:   {merged_count}")
     print(f"  Skipped no-address: {skipped_no_address}")
